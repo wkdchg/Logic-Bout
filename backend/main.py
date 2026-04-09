@@ -2,6 +2,10 @@ import json
 import uuid
 import os
 import anthropic
+from dotenv import load_dotenv
+
+# Завантажити змінні з .env файлу
+load_dotenv()
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +23,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = anthropic.AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+# API key повинен міститися в змінній оточення ANTHROPIC_API_KEY
+api_key = os.getenv("ANTHROPIC_API_KEY")
+if not api_key:
+    raise ValueError("ANTHROPIC_API_KEY не встановлений у змінних оточення")
+client = anthropic.AsyncAnthropic(api_key=api_key)
 
 # In-memory session store (week 1 — no DB yet)
 sessions: dict[str, DebateSession] = {}
