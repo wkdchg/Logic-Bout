@@ -5,6 +5,6 @@
 .vs/debate_arena.slnx/FileContentIndex/5616e7df-618f-4ee7-9c9c-eb8de411f77e.vsidx
 .vs/debate_arena.slnx/v18/.wsuo
 backend/__pycache__/debate_manager.cpython-312.pyc
-.gitignore
 backend/__pycache__/prompts.cpython-312.pyc
 backend/.env
+backend/__pycache__/main.cpython-312.pyc
