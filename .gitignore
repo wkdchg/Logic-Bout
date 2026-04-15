@@ -9,3 +9,5 @@ backend/__pycache__/prompts.cpython-312.pyc
 backend/.env
 backend/__pycache__/main.cpython-312.pyc
 backend/main_py_full_documentation.txt
+backend/debate_arena.db
+backend/__pycache__/database.cpython-312.pyc

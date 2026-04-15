@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from debate_manager import DebateSession
 from prompts import ANALYSIS_SYSTEM, TOPIC_SUGGESTIONS_SYSTEM
-from backend.database import (
+from database import (
     init_db, insert_debate, update_progress,
     save_analysis, list_debates, get_debate,
 )
@@ -60,7 +60,6 @@ async def start_debate(req: StartDebateRequest):
         user_position=req.user_position,
         total_rounds=req.total_rounds,
     )
-    sessions[session_id] = session
     await insert_debate(session_id, req.topic, req.user_position, req.total_rounds)
     return {"session_id": session_id, "topic": req.topic, "total_rounds": req.total_rounds}
 
