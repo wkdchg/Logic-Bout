@@ -7,14 +7,24 @@ from dotenv import load_dotenv
 # Завантажити змінні з .env файлу
 load_dotenv()
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from debate_manager import DebateSession
 from prompts import ANALYSIS_SYSTEM, TOPIC_SUGGESTIONS_SYSTEM
+from backend.database import (
+    init_db, insert_debate, update_progress,
+    save_analysis, list_debates, get_debate,
+)
 
-app = FastAPI(title="Debate Arena API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+
+app = FastAPI(title="Debate Arena API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -50,6 +60,8 @@ async def start_debate(req: StartDebateRequest):
         user_position=req.user_position,
         total_rounds=req.total_rounds,
     )
+    sessions[session_id] = session
+    await insert_debate(session_id, req.topic, req.user_position, req.total_rounds)
     return {"session_id": session_id, "topic": req.topic, "total_rounds": req.total_rounds}
 
 
@@ -69,6 +81,16 @@ async def session_status(session_id: str):
 
 @app.get("/debate/{session_id}/analysis")
 async def get_analysis(session_id: str):
+    # Check if analysis already cached in DB
+    record = await get_debate(session_id)
+    if record and 'analysis' in record:
+        return {
+            "persuasiveness_score": record.persuasiveness_score,
+            "verdict": record.verdict,
+            "cached": True,
+        }
+
+
     session = sessions.get(session_id)
     if not session:
         raise HTTPException(404, "Session not found")
@@ -81,8 +103,42 @@ async def get_analysis(session_id: str):
         system=ANALYSIS_SYSTEM,
         messages=session.analysis_messages(),
     )
-    return json.loads(response.content[0].text.strip())
+    analysis = json.loads(response.content[0].text.strip())
 
+    # Persist to DB
+    await save_analysis(
+        session_id=session_id,
+        score=analysis["persuasiveness_score"],
+        verdict=analysis["verdict"],
+        transcript=session.transcript(),
+    )
+    return analysis
+
+@app.get("/history")
+async def get_history(limit: int = 50):
+    records = await list_debates(limit)
+    return [
+        {
+            "session_id": r.session_id,
+            "topic": r.topic,
+            "user_position": r.user_position,
+            "total_rounds": r.total_rounds,
+            "completed_rounds": r.completed_rounds,
+            "score": r.persuasiveness_score,
+            "verdict": r.verdict,
+            "created_at": r.created_at,
+        }
+        for r in records
+    ]
+
+@app.get("/history/{session_id}/transcript")
+async def get_transcript(session_id: str):
+    record = await get_debate(session_id)
+    if not record:
+        raise HTTPException(404, "Debate not found")
+    if not record.transcript:
+        raise HTTPException(404, "Transcript not available yet")
+    return {"transcript": record.transcript}
 
 @app.get("/topics/suggestions")
 async def suggest_topics():
@@ -139,6 +195,7 @@ async def debate_websocket(ws: WebSocket, session_id: str):
                     await ws.send_json({"type": "token", "text": chunk})
 
             session.add_turn(user_text, full_response)
+            await update_progress(session_id, len(session.turns))
 
             await ws.send_json({
                 "type": "turn_end",

@@ -28,11 +28,22 @@ class _SetupScreenState extends State<SetupScreen> {
     setState(() => _loadingSuggestions = true);
     try {
       final topics = await _api.getTopicSuggestions();
+      if (!mounted) return;
       setState(() => _suggestions = topics);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cannot load suggestions: ${e.message}')),
+      );
     } catch (_) {
-      // ignore — user can type manually
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot load suggestions right now')),
+      );
     } finally {
-      setState(() => _loadingSuggestions = false);
+      if (mounted) {
+        setState(() => _loadingSuggestions = false);
+      }
     }
   }
 
@@ -52,6 +63,11 @@ class _SetupScreenState extends State<SetupScreen> {
         MaterialPageRoute(
           builder: (_) => DebateScreen(session: session),
         ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
       );
     } catch (e) {
       if (!mounted) return;

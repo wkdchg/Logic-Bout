@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/websocket_service.dart';
@@ -22,6 +24,7 @@ class DebateScreen extends StatefulWidget {
 
 class _DebateScreenState extends State<DebateScreen> {
   late final WebSocketService _ws;
+  StreamSubscription<DebateMessage>? _messagesSub;
   final _api = ApiService();
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
@@ -36,43 +39,65 @@ class _DebateScreenState extends State<DebateScreen> {
     super.initState();
     _ws = WebSocketService();
     _ws.connect(widget.session.sessionId);
-    _ws.messages.listen(_handleMessage);
+    _messagesSub = _ws.messages.listen(_handleMessage);
   }
 
   void _handleMessage(DebateMessage msg) {
     switch (msg.type) {
       case DebateMessageType.turnStart:
         setState(() {
-          _aiThinking = false;
-          // Add empty streaming bubble
-          _entries.add(_ChatEntry(text: '', isUser: false, isStreaming: true));
+          _aiThinking = true;
+          final hasStreamingAiBubble = _entries.isNotEmpty &&
+              !_entries.last.isUser &&
+              _entries.last.isStreaming;
+          if (!hasStreamingAiBubble) {
+            _entries.add(_ChatEntry(text: '', isUser: false, isStreaming: true));
+          }
         });
         _scrollToBottom();
+        break;
 
       case DebateMessageType.token:
         setState(() {
-          final last = _entries.last;
-          _entries[_entries.length - 1] = _ChatEntry(
-            text: last.text + (msg.text ?? ''),
-            isUser: false,
-            isStreaming: true,
-          );
+          final token = msg.text ?? '';
+          if (_entries.isEmpty || _entries.last.isUser || !_entries.last.isStreaming) {
+            _entries.add(_ChatEntry(text: token, isUser: false, isStreaming: true));
+          } else {
+            final last = _entries.last;
+            _entries[_entries.length - 1] = _ChatEntry(
+              text: last.text + token,
+              isUser: false,
+              isStreaming: true,
+            );
+          }
         });
         _scrollToBottom();
+        break;
 
       case DebateMessageType.turnEnd:
         setState(() {
-          _entries[_entries.length - 1].isStreaming = false;
+          if (_entries.isNotEmpty && !_entries.last.isUser && _entries.last.isStreaming) {
+            _entries[_entries.length - 1].isStreaming = false;
+          }
           _currentRound = (msg.round ?? _currentRound) + 1;
+          _aiThinking = false;
           _inputEnabled = !(msg.isFinished ?? false);
         });
         if (msg.isFinished ?? false) _onDebateFinished();
+        break;
 
       case DebateMessageType.error:
-        setState(() => _aiThinking = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg.errorMessage ?? 'Unknown error')),
-        );
+        final debateFinished = _currentRound > widget.session.totalRounds;
+        setState(() {
+          _aiThinking = false;
+          _inputEnabled = !debateFinished;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(msg.errorMessage ?? 'Unknown error')),
+          );
+        }
+        break;
     }
   }
 
@@ -157,15 +182,8 @@ class _DebateScreenState extends State<DebateScreen> {
             child: ListView.builder(
               controller: _scrollCtrl,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: _entries.length + (_aiThinking ? 1 : 0),
+              itemCount: _entries.length,
               itemBuilder: (_, i) {
-                if (_aiThinking && i == _entries.length) {
-                  return const ChatBubble(
-                    text: '',
-                    isUser: false,
-                    isStreaming: true,
-                  );
-                }
                 final e = _entries[i];
                 return ChatBubble(
                   text: e.text,
@@ -218,6 +236,7 @@ class _DebateScreenState extends State<DebateScreen> {
 
   @override
   void dispose() {
+    _messagesSub?.cancel();
     _ws.dispose();
     _inputCtrl.dispose();
     _scrollCtrl.dispose();

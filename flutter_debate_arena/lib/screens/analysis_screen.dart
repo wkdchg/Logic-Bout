@@ -30,8 +30,13 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   Future<void> _loadAnalysis() async {
     try {
       final data = await widget.api.getAnalysis(widget.sessionId);
+      if (!mounted) return;
       setState(() => _analysis = data);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.message);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     }
   }

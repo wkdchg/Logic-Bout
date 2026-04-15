@@ -1,6 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+class ApiException implements Exception {
+  final int statusCode;
+  final String message;
+
+  const ApiException({required this.statusCode, required this.message});
+
+  @override
+  String toString() => 'ApiException($statusCode): $message';
+}
+
 class DebateSession {
   final String sessionId;
   final String topic;
@@ -16,9 +26,23 @@ class DebateSession {
 class ApiService {
   static const String _base = 'http://localhost:8000';
 
+  Map<String, dynamic> _decodeJson(http.Response response) {
+    final raw = response.body.trim();
+    final decoded = raw.isEmpty
+        ? <String, dynamic>{}
+        : (jsonDecode(raw) as Map<String, dynamic>);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message = (decoded['detail'] ?? decoded['message'] ?? 'Request failed')
+          .toString();
+      throw ApiException(statusCode: response.statusCode, message: message);
+    }
+    return decoded;
+  }
+
   Future<List<String>> getTopicSuggestions() async {
     final r = await http.get(Uri.parse('$_base/topics/suggestions'));
-    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final data = _decodeJson(r);
     return List<String>.from(data['topics'] as List);
   }
 
@@ -36,7 +60,7 @@ class ApiService {
         'total_rounds': totalRounds,
       }),
     );
-    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final data = _decodeJson(r);
     return DebateSession(
       sessionId: data['session_id'] as String,
       topic: data['topic'] as String,
@@ -48,6 +72,16 @@ class ApiService {
     final r = await http.get(
       Uri.parse('$_base/debate/$sessionId/analysis'),
     );
-    return jsonDecode(r.body) as Map<String, dynamic>;
+    return _decodeJson(r);
+  }
+    Future<List<Map<String, dynamic>>> getHistory() async {
+    final r = await http.get(Uri.parse('$_base/history'));
+    return List<Map<String, dynamic>>.from(jsonDecode(r.body) as List);
+  }
+
+  Future<String> getTranscript(String sessionId) async {
+    final r = await http.get(Uri.parse('$_base/history/$sessionId/transcript'));
+    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    return data['transcript'] as String;
   }
 }
