@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../services/api_service.dart';
-import '../../../screens/transcript_screen.dart';
+import '../services/api_service.dart';
+import 'transcript_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   final ApiService api;
@@ -23,8 +23,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _load() async {
     try {
       final data = await widget.api.getHistory();
+      if (!mounted) return;
       setState(() => _history = data);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.message);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     }
   }
@@ -140,7 +145,7 @@ class _DebateListTile extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                border: Border.all(color: _scoreColor(score).withOpacity(0.5)),
+                border: Border.all(color: _scoreColor(score).withValues(alpha: 0.5), width: 2),
                 borderRadius: BorderRadius.circular(20),
               ),
               alignment: Alignment.center,

@@ -26,23 +26,35 @@ class DebateSession {
 class ApiService {
   static const String _base = 'http://localhost:8000';
 
-  Map<String, dynamic> _decodeJson(http.Response response) {
+  void _throwIfNotSuccess(http.Response response, Object? decoded) {
+    if (response.statusCode >= 200 && response.statusCode < 300) return;
+    String message = 'Request failed';
+    if (decoded is Map<String, dynamic>) {
+      message = (decoded['detail'] ?? decoded['message'] ?? message).toString();
+    }
+    throw ApiException(statusCode: response.statusCode, message: message);
+  }
+
+  Map<String, dynamic> _decodeObject(http.Response response) {
     final raw = response.body.trim();
     final decoded = raw.isEmpty
         ? <String, dynamic>{}
         : (jsonDecode(raw) as Map<String, dynamic>);
-
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      final message = (decoded['detail'] ?? decoded['message'] ?? 'Request failed')
-          .toString();
-      throw ApiException(statusCode: response.statusCode, message: message);
-    }
+    _throwIfNotSuccess(response, decoded);
     return decoded;
+  }
+
+  List<dynamic> _decodeList(http.Response response) {
+    final raw = response.body.trim();
+    final decoded = raw.isEmpty ? <dynamic>[] : jsonDecode(raw);
+    _throwIfNotSuccess(response, decoded);
+    if (decoded is List<dynamic>) return decoded;
+    throw const ApiException(statusCode: 500, message: 'Invalid response format');
   }
 
   Future<List<String>> getTopicSuggestions() async {
     final r = await http.get(Uri.parse('$_base/topics/suggestions'));
-    final data = _decodeJson(r);
+    final data = _decodeObject(r);
     return List<String>.from(data['topics'] as List);
   }
 
@@ -60,7 +72,7 @@ class ApiService {
         'total_rounds': totalRounds,
       }),
     );
-    final data = _decodeJson(r);
+    final data = _decodeObject(r);
     return DebateSession(
       sessionId: data['session_id'] as String,
       topic: data['topic'] as String,
@@ -72,16 +84,18 @@ class ApiService {
     final r = await http.get(
       Uri.parse('$_base/debate/$sessionId/analysis'),
     );
-    return _decodeJson(r);
+    return _decodeObject(r);
   }
-    Future<List<Map<String, dynamic>>> getHistory() async {
+
+  Future<List<Map<String, dynamic>>> getHistory() async {
     final r = await http.get(Uri.parse('$_base/history'));
-    return List<Map<String, dynamic>>.from(jsonDecode(r.body) as List);
+    final data = _decodeList(r);
+    return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
   Future<String> getTranscript(String sessionId) async {
     final r = await http.get(Uri.parse('$_base/history/$sessionId/transcript'));
-    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final data = _decodeObject(r);
     return data['transcript'] as String;
   }
 }

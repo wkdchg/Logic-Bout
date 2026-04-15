@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../services/api_service.dart';
+import '../services/api_service.dart';
 
 class TranscriptScreen extends StatefulWidget {
   final ApiService api;
@@ -34,8 +34,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   Future<void> _load() async {
     try {
       final t = await widget.api.getTranscript(widget.sessionId);
+      if (!mounted) return;
       setState(() => _transcript = t);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.message);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     }
   }
