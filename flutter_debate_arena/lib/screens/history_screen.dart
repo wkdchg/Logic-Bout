@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'analysis_screen.dart';
 import 'transcript_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -79,7 +80,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
           ),
-        _ => const SizedBox.shrink(),
       },
     );
   }
@@ -115,6 +115,7 @@ class _DebateListTile extends StatelessWidget {
     final completed = item['completed_rounds'] as int;
     final total = item['total_rounds'] as int;
     final isFinished = completed >= total && score != null;
+    final verdict = item['verdict'] as String?;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -126,36 +127,76 @@ class _DebateListTile extends StatelessWidget {
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              _formatDate(item['created_at'] as String),
-              style: theme.textTheme.bodySmall?.copyWith(color: colors.outline),
+            Row(
+              children: [
+                Text(
+                  _formatDate(item['created_at'] as String),
+                  style: theme.textTheme.bodySmall?.copyWith(color: colors.outline),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isFinished ? 'Finished' : '$completed/$total rounds',
+                  style: theme.textTheme.bodySmall?.copyWith(color: colors.outline),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              isFinished ? 'Finished' : '$completed/$total rounds',
-              style: theme.textTheme.bodySmall?.copyWith(color: colors.outline),
-            ),
+            if (isFinished && verdict != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  verdict,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.outline,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
       trailing: isFinished
-          ? Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                border: Border.all(color: _scoreColor(score).withValues(alpha: 0.5), width: 2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                '$score',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: _scoreColor(score),
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: _scoreColor(score).withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$score',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: _scoreColor(score),
+                    ),
+                  ),
                 ),
-              ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'View analysis',
+                  icon: Icon(Icons.assessment_rounded, size: 22, color: colors.outline),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AnalysisScreen(
+                        api: api,
+                        sessionId: item['session_id'] as String,
+                        topic: item['topic'] as String,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             )
           : Icon(Icons.hourglass_empty, color: colors.outlineVariant),
       onTap: isFinished

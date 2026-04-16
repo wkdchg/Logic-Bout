@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'debate_screen.dart';
+import 'history_screen.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -84,7 +85,19 @@ class _SetupScreenState extends State<SetupScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Debate Arena')),
+      appBar: AppBar(
+        title: const Text('Debate Arena'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Past debates',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => HistoryScreen(api: _api),
+              ),
+            ),
+          ),
+        ],),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(

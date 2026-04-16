@@ -107,7 +107,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               ],
             ),
           ),
-        _ => const SizedBox.shrink(),
       },
     );
   }

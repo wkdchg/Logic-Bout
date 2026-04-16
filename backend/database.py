@@ -15,12 +15,16 @@ class DebateRecord:
     completed_rounds: int
     persuasiveness_score: Optional[int]
     verdict: Optional[str]
+    strong_points: Optional[list[str]]
+    weak_points: Optional[list[str]]
+    suggested_reading: Optional[str]
     transcript: Optional[str]
     created_at: str
 
 
 async def init_db():
     async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
         await db.execute("""
             CREATE TABLE IF NOT EXISTS debates (
                 session_id       TEXT PRIMARY KEY,
@@ -30,10 +34,29 @@ async def init_db():
                 completed_rounds INTEGER NOT NULL DEFAULT 0,
                 score            INTEGER,
                 verdict          TEXT,
+                strong_points   TEXT,
+                weak_points     TEXT,
+                suggested_reading TEXT,
                 transcript       TEXT,
                 created_at       TEXT NOT NULL DEFAULT (datetime('now'))
             )
         """)
+        # Backward-compatible schema migration for existing DBs.
+        async with db.execute("PRAGMA table_info(debates)") as cursor:
+            rows = await cursor.fetchall()
+        existing_cols = {r["name"] for r in rows}
+
+        required_cols: dict[str, str] = {
+            "strong_points": "TEXT",
+            "weak_points": "TEXT",
+            "suggested_reading": "TEXT",
+        }
+        for col_name, col_def in required_cols.items():
+            if col_name not in existing_cols:
+                await db.execute(
+                    f"ALTER TABLE debates ADD COLUMN {col_name} {col_def}"
+                )
+
         await db.commit()
 
 
@@ -56,13 +79,35 @@ async def update_progress(session_id: str, completed_rounds: int):
         await db.commit()
 
 
-async def save_analysis(session_id: str, score: int, verdict: str, transcript: str):
+async def save_analysis(
+    session_id: str,
+    *,
+    score: int,
+    verdict: str,
+    strong_points: list[str],
+    weak_points: list[str],
+    suggested_reading: str,
+    transcript: str,
+):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute(
             """UPDATE debates
-               SET score = ?, verdict = ?, transcript = ?
+               SET score = ?,
+                   verdict = ?,
+                   strong_points = ?,
+                   weak_points = ?,
+                   suggested_reading = ?,
+                   transcript = ?
                WHERE session_id = ?""",
-            (score, verdict, transcript, session_id),
+            (
+                score,
+                verdict,
+                json.dumps(strong_points),
+                json.dumps(weak_points),
+                suggested_reading,
+                transcript,
+                session_id,
+            ),
         )
         await db.commit()
 
@@ -84,6 +129,9 @@ async def list_debates(limit: int = 50) -> list[DebateRecord]:
             completed_rounds=r["completed_rounds"],
             persuasiveness_score=r["score"],
             verdict=r["verdict"],
+            strong_points=json.loads(r["strong_points"]) if r["strong_points"] else None,
+            weak_points=json.loads(r["weak_points"]) if r["weak_points"] else None,
+            suggested_reading=r["suggested_reading"],
             transcript=r["transcript"],
             created_at=r["created_at"],
         )
@@ -108,6 +156,9 @@ async def get_debate(session_id: str) -> Optional[DebateRecord]:
         completed_rounds=row["completed_rounds"],
         persuasiveness_score=row["score"],
         verdict=row["verdict"],
+        strong_points=json.loads(row["strong_points"]) if row["strong_points"] else None,
+        weak_points=json.loads(row["weak_points"]) if row["weak_points"] else None,
+        suggested_reading=row["suggested_reading"],
         transcript=row["transcript"],
         created_at=row["created_at"],
     )

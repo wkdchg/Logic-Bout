@@ -174,7 +174,7 @@ class _ScoreCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: Border.all(color: _scoreColor.withOpacity(0.4)),
+        border: Border.all(color: _scoreColor.withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

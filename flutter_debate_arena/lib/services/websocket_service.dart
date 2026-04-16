@@ -45,8 +45,6 @@ class DebateMessage {
 
 class WebSocketService {
   static const String _baseWs = 'ws://localhost:8000';
-  /// For HTTP requests (if needed in the future)
-  static const String _baseHttp = 'http://localhost:8000';
 
   WebSocketChannel? _channel;
   final _messageController = StreamController<DebateMessage>.broadcast();
