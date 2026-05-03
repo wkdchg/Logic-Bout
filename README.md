@@ -1,4 +1,4 @@
-# Debate Arena — Backend (Week 1)
+# Logic Bout — Backend (Week 1)
 
 FastAPI backend with WebSocket streaming + Claude API.
 
