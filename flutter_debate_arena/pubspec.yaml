@@ -1,5 +1,5 @@
-name: debate_arena
-description: AI-powered debate app with realtime streaming.
+name: logic_bout
+description: Logic Bout — AI-powered debates with realtime streaming.
 publish_to: none
 version: 1.0.0+1
 
@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   http: ^1.2.2
   web_socket_channel: ^3.0.1
+  google_sign_in: ^6.2.2
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:

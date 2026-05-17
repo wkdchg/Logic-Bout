@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     await init_db()
     yield
 
-app = FastAPI(title="Debate Arena API", lifespan=lifespan)
+app = FastAPI(title="Logic Bout API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

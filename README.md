@@ -1,4 +1,4 @@
-# Debate Arena
+# Logic Bout
 
 A mobile app where you argue any topic against an AI opponent that always takes the opposite side — then get a detailed analysis of your performance.
 

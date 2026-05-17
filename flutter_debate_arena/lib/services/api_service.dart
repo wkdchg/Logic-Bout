@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiException implements Exception {
@@ -24,7 +25,27 @@ class DebateSession {
 }
 
 class ApiService {
-  static const String _base = 'http://localhost:8000';
+  static const int _port = 8000;
+  static const Duration _timeout = Duration(seconds: 20);
+  static const bool _useAndroidEmulatorHost = bool.fromEnvironment(
+    'ANDROID_EMULATOR',
+    defaultValue: false,
+  );
+  static const String _apiHostFromEnv = String.fromEnvironment(
+    'API_HOST',
+    defaultValue: '',
+  );
+
+  static String get _host {
+    if (_apiHostFromEnv.isNotEmpty) return _apiHostFromEnv;
+    if (kIsWeb) return 'localhost';
+    if (defaultTargetPlatform == TargetPlatform.android && _useAndroidEmulatorHost) {
+      return '10.0.2.2';
+    }
+    return '127.0.0.1';
+  }
+
+  static String get _base => 'http://$_host:$_port';
 
   void _throwIfNotSuccess(http.Response response, Object? decoded) {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
@@ -53,7 +74,7 @@ class ApiService {
   }
 
   Future<List<String>> getTopicSuggestions() async {
-    final r = await http.get(Uri.parse('$_base/topics/suggestions'));
+    final r = await _get('$_base/topics/suggestions');
     final data = _decodeObject(r);
     return List<String>.from(data['topics'] as List);
   }
@@ -63,14 +84,13 @@ class ApiService {
     required String userPosition,
     int totalRounds = 5,
   }) async {
-    final r = await http.post(
-      Uri.parse('$_base/debate/start'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+    final r = await _post(
+      '$_base/debate/start',
+      body: {
         'topic': topic,
         'user_position': userPosition,
         'total_rounds': totalRounds,
-      }),
+      },
     );
     final data = _decodeObject(r);
     return DebateSession(
@@ -81,21 +101,50 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getAnalysis(String sessionId) async {
-    final r = await http.get(
-      Uri.parse('$_base/debate/$sessionId/analysis'),
-    );
+    final r = await _get('$_base/debate/$sessionId/analysis');
     return _decodeObject(r);
   }
 
   Future<List<Map<String, dynamic>>> getHistory() async {
-    final r = await http.get(Uri.parse('$_base/history'));
+    final r = await _get('$_base/history');
     final data = _decodeList(r);
     return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
   Future<String> getTranscript(String sessionId) async {
-    final r = await http.get(Uri.parse('$_base/history/$sessionId/transcript'));
+    final r = await _get('$_base/history/$sessionId/transcript');
     final data = _decodeObject(r);
     return data['transcript'] as String;
+  }
+
+  Future<http.Response> _get(String url) async {
+    try {
+      return await http.get(Uri.parse(url)).timeout(_timeout);
+    } on Exception catch (e) {
+      throw ApiException(
+        statusCode: 0,
+        message: 'Не вдалося підключитися до сервера ($_host:$_port): $e',
+      );
+    }
+  }
+
+  Future<http.Response> _post(
+    String url, {
+    required Map<String, dynamic> body,
+  }) async {
+    try {
+      return await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(_timeout);
+    } on Exception catch (e) {
+      throw ApiException(
+        statusCode: 0,
+        message: 'Не вдалося підключитися до сервера ($_host:$_port): $e',
+      );
+    }
   }
 }

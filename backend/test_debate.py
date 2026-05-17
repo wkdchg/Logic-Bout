@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Quick terminal test for Debate Arena backend.
+Quick terminal test for Logic Bout backend.
 Run AFTER starting the server:  uvicorn main:app --reload
 
 Usage:
@@ -11,8 +11,8 @@ import json
 import httpx
 import websockets
 
-BASE = "http://localhost:8000"
-WS_BASE = "ws://localhost:8000"
+BASE = "https://192.168.1.5:8000"
+WS_BASE = "ws://192.168.1.5:8000"
 
 
 async def run():

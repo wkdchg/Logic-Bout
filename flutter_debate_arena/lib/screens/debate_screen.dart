@@ -170,7 +170,7 @@ class _DebateScreenState extends State<DebateScreen> {
             child: Text(
               _inputEnabled
                   ? 'Round $_currentRound of $totalRounds'
-                  : 'Debate complete',
+                  : 'Bout complete',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -210,7 +210,7 @@ class _DebateScreenState extends State<DebateScreen> {
                       decoration: InputDecoration(
                         hintText: _inputEnabled
                             ? 'Make your argument...'
-                            : 'Debate finished',
+                            : 'Bout finished',
                         border: const OutlineInputBorder(),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14,

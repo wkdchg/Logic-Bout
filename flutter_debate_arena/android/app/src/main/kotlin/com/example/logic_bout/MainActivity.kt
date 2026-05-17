@@ -1,4 +1,4 @@
-package com.example.flutter_debate_arena
+package com.example.logic_bout
 
 import io.flutter.embedding.android.FlutterActivity
 

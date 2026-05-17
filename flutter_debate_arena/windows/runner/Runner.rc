@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "flutter_debate_arena" "\0"
+            VALUE "FileDescription", "Logic Bout" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "flutter_debate_arena" "\0"
+            VALUE "InternalName", "logic_bout" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "flutter_debate_arena.exe" "\0"
-            VALUE "ProductName", "flutter_debate_arena" "\0"
+            VALUE "OriginalFilename", "logic_bout.exe" "\0"
+            VALUE "ProductName", "Logic Bout" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

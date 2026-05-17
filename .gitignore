@@ -1,13 +1,84 @@
-.vs/debate_arena.slnx/FileContentIndex/27a04fde-c548-414a-8a51-a1aa50fe5ec6.vsidx
-.vs/slnx.sqlite
-.vs/debate_arena.slnx/FileContentIndex/463b741e-8d32-465a-910a-b0b625ee3379.vsidx
-.vs/debate_arena.slnx/FileContentIndex/5620798e-32e9-47b5-8bf3-93b479a3199c.vsidx
-.vs/debate_arena.slnx/FileContentIndex/5616e7df-618f-4ee7-9c9c-eb8de411f77e.vsidx
-.vs/debate_arena.slnx/v18/.wsuo
-backend/__pycache__/debate_manager.cpython-312.pyc
-backend/__pycache__/prompts.cpython-312.pyc
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / editors
+.idea/
+.vs/
+*.iml
+*.ipr
+*.iws
+*.swp
+*.swo
+*~
+
+# VS Code (keep shared settings if needed; ignore local overrides)
+.vscode/launch.json
+
+# Python backend
+backend/venv/
+backend/.venv/
+backend/__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Secrets & local runtime data
 backend/.env
-backend/__pycache__/main.cpython-312.pyc
-backend/main_py_full_documentation.txt
-backend/debate_arena.db
-backend/__pycache__/database.cpython-312.pyc
+.env
+.env.*
+!.env.example
+
+# Local SQLite databases
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
+# Flutter / Dart (also see flutter_debate_arena/.gitignore)
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/build/
+**/coverage/
+*.apk
+*.aab
+*.ipa
+*.symbols
+app.*.map.json
+
+# Android Gradle (module-level build outputs)
+**/android/**/build/
+**/android/.gradle/
+**/android/local.properties
+**/android/**/captures/
+**/android/**/GeneratedPluginRegistrant.java
+
+# iOS / macOS generated
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/macos/Flutter/ephemeral/
+**/macos/Pods/
+
+# Windows / Linux ephemeral
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+
+# Logs & temp
+*.log
+*.tmp
+*.temp

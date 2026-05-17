@@ -1,6 +1,6 @@
-# flutter_debate_arena
+# Logic Bout
 
-A new Flutter project.
+Flutter client for Logic Bout — AI debates with realtime streaming.
 
 ## Getting Started
 

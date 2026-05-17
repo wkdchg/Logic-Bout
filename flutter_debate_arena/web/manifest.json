@@ -1,11 +1,11 @@
 {
-    "name": "flutter_debate_arena",
-    "short_name": "flutter_debate_arena",
+    "name": "Logic Bout",
+    "short_name": "Logic Bout",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Logic Bout — AI-powered debates with realtime streaming.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 enum DebateMessageType { turnStart, token, turnEnd, error }
@@ -44,7 +45,26 @@ class DebateMessage {
 }
 
 class WebSocketService {
-  static const String _baseWs = 'ws://localhost:8000';
+  static const int _port = 8000;
+  static const bool _useAndroidEmulatorHost = bool.fromEnvironment(
+    'ANDROID_EMULATOR',
+    defaultValue: false,
+  );
+  static const String _apiHostFromEnv = String.fromEnvironment(
+    'API_HOST',
+    defaultValue: '',
+  );
+
+  static String get _host {
+    if (_apiHostFromEnv.isNotEmpty) return _apiHostFromEnv;
+    if (kIsWeb) return 'localhost';
+    if (defaultTargetPlatform == TargetPlatform.android && _useAndroidEmulatorHost) {
+      return '10.0.2.2';
+    }
+    return '127.0.0.1';
+  }
+
+  static String get _baseWs => 'ws://$_host:$_port';
 
   WebSocketChannel? _channel;
   final _messageController = StreamController<DebateMessage>.broadcast();

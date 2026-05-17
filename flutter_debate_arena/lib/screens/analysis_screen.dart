@@ -147,7 +147,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                         child: FilledButton(
                           onPressed: () => Navigator.of(context)
                               .popUntil((r) => r.isFirst),
-                          child: const Text('New debate'),
+                          child: const Text('New bout'),
                         ),
                       ),
                     ],

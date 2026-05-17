@@ -42,7 +42,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Past debates'),
+        title: const Text('Past bouts'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -63,7 +63,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               children: [
                 Icon(Icons.history, size: 48, color: colors.outlineVariant),
                 const SizedBox(height: 12),
-                Text('No debates yet', style: theme.textTheme.bodyLarge),
+                Text('No bouts yet', style: theme.textTheme.bodyLarge),
               ],
             ),
           ),

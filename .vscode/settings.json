@@ -1,3 +1,4 @@
 {
-    "dart.showTodos": false
+    "dart.showTodos": false,
+    "cmake.sourceDirectory": "D:/My project flutter/debate_arena/flutter_debate_arena/linux"
 }

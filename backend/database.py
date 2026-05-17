@@ -3,7 +3,7 @@ import aiosqlite
 from dataclasses import dataclass
 from typing import Optional
 
-DB_PATH = "debate_arena.db"
+DB_PATH = "logic_bout.db"
 
 
 @dataclass

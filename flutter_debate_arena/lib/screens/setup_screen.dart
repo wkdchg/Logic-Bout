@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import 'authentication_screen.dart';
 import 'debate_screen.dart';
 import 'history_screen.dart';
 
@@ -80,22 +82,47 @@ class _SetupScreenState extends State<SetupScreen> {
     }
   }
 
+  Future<void> _signOut() async {
+    await AuthService.instance.signOut();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const AuthenticationScreen()),
+      (_) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Debate Arena'),
+        title: const Text('Logic Bout'),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
-            tooltip: 'Past debates',
+            tooltip: 'Past bouts',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => HistoryScreen(api: _api),
               ),
             ),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'Обліковий запис',
+            onSelected: (value) {
+              if (value == 'logout') _signOut();
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'logout',
+                child: ListTile(
+                  leading: Icon(Icons.logout),
+                  title: Text('Вийти'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],),
       body: SingleChildScrollView(
@@ -158,7 +185,7 @@ class _SetupScreenState extends State<SetupScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Start debate', style: TextStyle(fontSize: 16)),
+                    : const Text('Start bout', style: TextStyle(fontSize: 16)),
               ),
             ),
           ],
